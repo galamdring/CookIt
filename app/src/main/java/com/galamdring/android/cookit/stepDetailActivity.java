@@ -3,6 +3,7 @@ package com.galamdring.android.cookit;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -29,6 +30,8 @@ public class stepDetailActivity extends AppCompatActivity {
     private SimpleExoPlayerView PlayerView;
     private SimpleExoPlayer Player;
     private TextView Description;
+    private final String POSITION_BUNDLE_KEY = "Position";
+    private String PLAYING_BUNDLE_KEY = "PLAYING";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +53,15 @@ public class stepDetailActivity extends AppCompatActivity {
                 MediaSource source = new ExtractorMediaSource(mediaUri,new DefaultDataSourceFactory(
                         this,userAgent),new DefaultExtractorsFactory(),null,null);
                 Player.prepare(source);
-                Player.setPlayWhenReady(true);
+                long position =0;
+                boolean playing = true;
+                //this pulls the data on a rotate, or other reload of the existing activity.
+                if(savedInstanceState!=null){
+                    position = savedInstanceState.getLong(POSITION_BUNDLE_KEY);
+                    playing = (savedInstanceState.getByte(PLAYING_BUNDLE_KEY)!=0);
+                }
+                if(position!=0) Player.seekTo(position);
+                Player.setPlayWhenReady(playing);
                 PlayerView.hideController();
             }
         }
@@ -65,6 +76,22 @@ public class stepDetailActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if(Util.SDK_INT<=23){
+            Player.release();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(Util.SDK_INT>23){
+            Player.release();
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         if(Player!=null) {
             Player.stop();
@@ -74,4 +101,12 @@ public class stepDetailActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        long position = Player.getCurrentPosition();
+        boolean playing = Player.getPlayWhenReady();
+        outState.putLong(POSITION_BUNDLE_KEY, position);
+        outState.putByte(PLAYING_BUNDLE_KEY,(byte) (playing ? 1 : 0));
+    }
 }
