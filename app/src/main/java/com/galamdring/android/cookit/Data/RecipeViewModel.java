@@ -5,6 +5,7 @@ import android.arch.core.util.Function;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Transformations;
+import android.arch.persistence.room.Query;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
@@ -30,14 +31,12 @@ public class RecipeViewModel extends AndroidViewModel {
 
     public LiveData<Recipe> getRecipeById(int id){
         LiveData<RecipeWithRelations> recipes = DATABASE.recipeDao().getRecipe(id);
-        return Transformations.map(recipes, this::transformRecipe);
+        return Transformations.map(recipes, Recipe::transformRecipe);
     }
 
-    private Recipe transformRecipe(RecipeWithRelations recipeWithRelations) {
-        Recipe recipe = recipeWithRelations.recipe;
-        recipe.setIngredients(recipeWithRelations.getIngredients());
-        recipe.setSteps(recipeWithRelations.getSteps());
-        return recipe;
+
+    public List<Ingredient> getIngredientsByRecipeIdForWidget(int id){
+        return DATABASE.recipeDao().getIngredientsByRecipeIdForWidget(id);
     }
 
 

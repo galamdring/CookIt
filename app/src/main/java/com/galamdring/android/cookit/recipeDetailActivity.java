@@ -25,7 +25,7 @@ public class recipeDetailActivity extends AppCompatActivity implements StepAdapt
     }
 
     private void PopulateUI(Recipe recipe) {
-
+        if(recipe==null) return;
         if(recipe.getImage()!=null && !TextUtils.isEmpty(recipe.getImage())) {
             ImageView image = findViewById(R.id.recipePhoto);
             Picasso.with(this).load(recipe.getImage()).into(image);

@@ -12,7 +12,7 @@ import java.util.List;
 @Dao
 public abstract class RecipeDao {
 
-    void insertRecipe(List<Recipe> recipes){
+    public void insertRecipe(List<Recipe> recipes){
         _insertRecipes(recipes);
         for(Recipe recipe:recipes){
             _insertIngredients(recipe.getIngredients());
@@ -21,26 +21,26 @@ public abstract class RecipeDao {
     }
 
     @Insert
-    abstract void _insertRecipes(List<Recipe> recipes);
+    public abstract void _insertRecipes(List<Recipe> recipes);
 
     @Insert
-    abstract void _insertIngredients(List<Ingredient> ingredients);
+    public abstract void _insertIngredients(List<Ingredient> ingredients);
 
     @Insert
-    abstract void _insertSteps(List<Step> steps);
+    public abstract void _insertSteps(List<Step> steps);
 
-    void deleteAll(){
+    public void deleteAll(){
         deleteIngredients();
         deleteSteps();
         deleteRecipes();
     }
 
     @Query("Delete from Recipe")
-    abstract void deleteRecipes();
+    public abstract void deleteRecipes();
     @Query("Delete from Ingredient")
-    abstract void deleteIngredients();
+    public abstract void deleteIngredients();
     @Query("Delete from step")
-    abstract void deleteSteps();
+    public abstract void deleteSteps();
 
 
     //This is supposed to get the related objects as well.
@@ -54,7 +54,14 @@ public abstract class RecipeDao {
     //This should get the steps and ingredients as well
     @Query("Select * from Recipe where id=:id")
     @Transaction
-    abstract LiveData<RecipeWithRelations> getRecipe(int id);
+    public abstract LiveData<RecipeWithRelations> getRecipe(int id);
+
+    //This should get the steps and ingredients as well
+    @Query("Select * from Recipe where id=:id")
+    @Transaction
+    public abstract RecipeWithRelations getRecipeForWidget(int id);
 
 
+    @Query("select * from Ingredient where recipeId=:id")
+    public abstract List<Ingredient> getIngredientsByRecipeIdForWidget(int id);
 }

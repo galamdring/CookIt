@@ -5,6 +5,7 @@ import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.Transformations;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,9 +17,11 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 
+import com.galamdring.android.cookit.Data.Ingredient;
 import com.galamdring.android.cookit.Data.Recipe;
 import com.galamdring.android.cookit.Data.RecipeDatabase;
 import com.galamdring.android.cookit.Data.RecipeSpinnerAdapter;
+import com.galamdring.android.cookit.Data.RecipeViewModel;
 
 
 import java.util.List;
@@ -54,6 +57,7 @@ public class RecipeWidgetProviderConfigureActivity extends AppCompatActivity {
     };
     private List<Recipe> Recipes;
     private RecipeSpinnerAdapter mSpinnerAdapter;
+    private static RecipeViewModel recipeViewModel;
 
     public RecipeWidgetProviderConfigureActivity() {
         super();
@@ -92,7 +96,8 @@ public class RecipeWidgetProviderConfigureActivity extends AppCompatActivity {
         findViewById(R.id.add_button).setOnClickListener(mOnClickListener);
 
         RecipeSpinner = findViewById(R.id.recipeSelectSpinner);
-        Transformations.map(RecipeDatabase.getInstance(this).recipeDao()._getRecipesWithRelations(),Recipe::transformRecipeList)
+        recipeViewModel = ViewModelProviders.of(this).get(RecipeViewModel.class);
+        recipeViewModel.getRecipeList()
             .observe(this, this::onChanged);
 
         mSpinnerAdapter = new RecipeSpinnerAdapter(this,android.R.layout.simple_spinner_item, Recipes);
@@ -117,6 +122,16 @@ public class RecipeWidgetProviderConfigureActivity extends AppCompatActivity {
     private void onChanged(List<Recipe> recipes) {
         Recipes = recipes;
         mSpinnerAdapter.setRecipes(recipes);
+    }
+
+    public static LiveData<Recipe> loadRecipe(Context context, int appWidgetId) {
+        int id = loadRecipePref(context,appWidgetId);
+        return recipeViewModel.getRecipeById(id);
+    }
+
+    public static List<Ingredient> loadIngredients(Context context, int appWidgetId){
+        int id = loadRecipePref(context,appWidgetId);
+        return recipeViewModel.getIngredientsByRecipeIdForWidget(id);
     }
 }
 
