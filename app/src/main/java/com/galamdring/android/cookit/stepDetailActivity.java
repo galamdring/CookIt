@@ -7,6 +7,9 @@ import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.galamdring.android.cookit.Data.Recipe;
@@ -58,12 +61,18 @@ public class stepDetailActivity extends AppCompatActivity {
                 //this pulls the data on a rotate, or other reload of the existing activity.
                 if(savedInstanceState!=null){
                     position = savedInstanceState.getLong(POSITION_BUNDLE_KEY);
+                    Log.d(this.getClass().getSimpleName(),"set position to "+position);
                     playing = (savedInstanceState.getByte(PLAYING_BUNDLE_KEY)!=0);
                 }
                 if(position!=0) Player.seekTo(position);
                 Player.setPlayWhenReady(playing);
                 PlayerView.hideController();
             }
+        }
+        else{
+            PlayerView.setVisibility(View.GONE);
+            View layout = findViewById(R.id.stepDetailLinearLayout);
+            if(layout!=null)        layout.setVisibility(View.VISIBLE);
         }
 
         try {
@@ -79,7 +88,7 @@ public class stepDetailActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         if(Util.SDK_INT<=23){
-            Player.release();
+            releasePlayer();
         }
     }
 
@@ -87,24 +96,29 @@ public class stepDetailActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         if(Util.SDK_INT>23){
-            Player.release();
+            releasePlayer();
         }
     }
 
-    @Override
-    protected void onDestroy() {
+    private void releasePlayer(){
         if(Player!=null) {
             Player.stop();
             Player.release();
             Player = null;
         }
+    }
+    @Override
+    protected void onDestroy() {
+        releasePlayer();
         super.onDestroy();
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.d("stepdetailActivity","in onSaveInstanceState");
+        super.onSaveInstanceState(outState);
         long position = Player.getCurrentPosition();
+        Log.d(this.getClass().getSimpleName(),"got position as "+position);
         boolean playing = Player.getPlayWhenReady();
         outState.putLong(POSITION_BUNDLE_KEY, position);
         outState.putByte(PLAYING_BUNDLE_KEY,(byte) (playing ? 1 : 0));

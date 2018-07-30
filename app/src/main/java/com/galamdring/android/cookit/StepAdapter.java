@@ -3,12 +3,15 @@ package com.galamdring.android.cookit;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.galamdring.android.cookit.Data.Step;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -36,6 +39,11 @@ public class StepAdapter extends RecyclerView.Adapter<StepAdapter.StepViewHolder
         Step step = Steps.get(position);
         holder.id.setText(Integer.toString(step.getId()));
         holder.description.setText(step.getShortDescription());
+        String thumbUrl = step.getThumbnailUrl();
+        if(thumbUrl!=null && !TextUtils.isEmpty(thumbUrl)){
+            Picasso.with(CreatorContext).load(thumbUrl).into(holder.imageView);
+        }
+
         if(position%2==1){
             holder.containerLayout.setBackgroundColor(0x80E0EEEE);
         }
@@ -53,6 +61,10 @@ public class StepAdapter extends RecyclerView.Adapter<StepAdapter.StepViewHolder
         return Steps.size();
     }
 
+    public void setClickHandler(StepClickHandler handler) {
+        stepClickHandler = handler;
+    }
+
     interface StepClickHandler{
         void onClick(Step step);
     }
@@ -60,12 +72,14 @@ public class StepAdapter extends RecyclerView.Adapter<StepAdapter.StepViewHolder
         TextView id;
         TextView description;
         View containerLayout;
+        ImageView imageView;
 
         public StepViewHolder(View itemView) {
             super(itemView);
             id = itemView.findViewById(R.id.stepItemId);
             description = itemView.findViewById(R.id.stepItemDescription);
             containerLayout = itemView.findViewById(R.id.stepItemContainer);
+            imageView = itemView.findViewById(R.id.step_item_image_view);
             itemView.setOnClickListener(this);
         }
 

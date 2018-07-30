@@ -16,36 +16,19 @@ import com.squareup.picasso.Picasso;
 
 public class recipeDetailActivity extends AppCompatActivity implements StepAdapter.StepClickHandler {
 
+    private RecipeDetailFragment mDetailFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_detail);
         Recipe recipe = getIntent().getParcelableExtra("Recipe");
-        PopulateUI(recipe);
+        mDetailFragment = new RecipeDetailFragment();
+        mDetailFragment.setData(recipe);
+        mDetailFragment.setStepSelectionHandler(this);
+        getSupportFragmentManager().beginTransaction().replace(R.id.recipe_detail_fragment_solo,mDetailFragment).commit();
     }
 
-    private void PopulateUI(Recipe recipe) {
-        if(recipe==null) return;
-        if(recipe.getImage()!=null && !TextUtils.isEmpty(recipe.getImage())) {
-            ImageView image = findViewById(R.id.recipePhoto);
-            Picasso.with(this).load(recipe.getImage()).into(image);
-        }
-
-        setTitle(recipe.getName());
-
-        TextView title = findViewById(R.id.recipeTitle);
-        TextView servings = findViewById(R.id.recipeServings);
-        title.setText(String.format("%s",recipe.getName()));
-        servings.setText(String.format("%s",recipe.getServings()));
-
-        RecyclerView ingredientRV = findViewById(R.id.ingredientRecyclerView);
-        ingredientRV.setLayoutManager(new GridLayoutManager(this,1));
-        ingredientRV.setAdapter(new IngredientAdapter(this,recipe.getIngredients()));
-
-        RecyclerView stepRV = findViewById(R.id.stepRecyclerView);
-        stepRV.setLayoutManager(new LinearLayoutManager(this));
-        stepRV.setAdapter(new StepAdapter(this,recipe.getSteps(),this));
-    }
 
     @Override
     public void onClick(Step step) {
