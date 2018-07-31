@@ -23,6 +23,7 @@ import com.galamdring.android.cookit.Data.Step;
 import com.squareup.picasso.Picasso;
 
 public class RecipeDetailFragment extends Fragment {
+    private static final String KEY_FOR_RECIPE_IN_ARGS = "One key to rule them all";
     ImageView image;
     Context ActivityContext;
     RecyclerView stepRV;
@@ -33,6 +34,8 @@ public class RecipeDetailFragment extends Fragment {
     private StepAdapter.StepClickHandler mStepClickHandler;
     private StepAdapter mStepAdapter;
     private int ParentId;
+
+
 
     @Nullable
     @Override
@@ -51,10 +54,26 @@ public class RecipeDetailFragment extends Fragment {
         return view;
     }
 
+    public static RecipeDetailFragment instanceOf(Recipe recipe){
+        Bundle args = new Bundle();
+        args.putParcelable(KEY_FOR_RECIPE_IN_ARGS,recipe);
+        RecipeDetailFragment frag = new RecipeDetailFragment();
+        frag.setArguments(args);
+        return frag;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        mRecipe=getArguments()!=null?getArguments().getParcelable(KEY_FOR_RECIPE_IN_ARGS):null;
+        if(mStepClickHandler==null){
+            try{
+                setStepSelectionHandler((StepAdapter.StepClickHandler)getActivity());
+            }
+            catch(Exception ex){
+                Log.e("RecipeDetailFragment","Failed to set StepClickHandler with parent Activity",ex);
+            }
+        }
     }
 
     private void PopulateUI(Recipe recipe) {

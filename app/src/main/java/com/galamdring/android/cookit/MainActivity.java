@@ -41,21 +41,15 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.Rec
     private String RECIPE_DETAIL_BUNDLE_KEY = "This is the key for the detail fragment in the bundle.";
     private boolean mDualPane = false;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        View view = findViewById(R.id.recipe_detail_fragment);
-        mDualPane = (view != null && view.getVisibility()==View.VISIBLE);
+
         if(savedInstanceState!=null){
             mRecipeFragment = (RecipeListFragment) getSupportFragmentManager().getFragment(savedInstanceState,RECIPE_FRAGMENT_BUNDLE_KEY);
 
-            if(mDualPane){
-                RecipeDetailFragment detailFragment = (RecipeDetailFragment) getSupportFragmentManager().getFragment(savedInstanceState,RECIPE_DETAIL_BUNDLE_KEY);
-                if(detailFragment!=null){
-                    mDetailFragment = detailFragment;
-                }
-            }
         }
         else {
             mRecipeFragment = new RecipeListFragment();
@@ -77,30 +71,16 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.Rec
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         getSupportFragmentManager().putFragment(outState,RECIPE_FRAGMENT_BUNDLE_KEY,mRecipeFragment);
-        if(mDualPane)getSupportFragmentManager().putFragment(outState,RECIPE_DETAIL_BUNDLE_KEY,mDetailFragment);
+
     }
 
     @Override
     public void onClick(Recipe recipe) {
-        if(mDualPane){
-            mDetailFragment = new RecipeDetailFragment();
-            mDetailFragment.setData(recipe);
-            mDetailFragment.setStepSelectionHandler(this);
-            RecipeDetailFragment existingFragment = (RecipeDetailFragment) getSupportFragmentManager().findFragmentById(R.id.recipe_detail_fragment);
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            if(existingFragment!=null){
-                transaction.replace(existingFragment.getId(), mDetailFragment,DETAIL_FRAGMENT_TAG).commit();
-            }
-            else{
-                transaction.replace(R.id.recipe_detail_fragment,mDetailFragment,DETAIL_FRAGMENT_TAG).commit();
-            }
-            getSupportFragmentManager().beginTransaction().replace(R.id.recipe_detail_fragment,mDetailFragment).commit();
-        }
-        else{
+
         Intent recipeDetailIntent = new Intent(this, recipeDetailActivity.class);
         recipeDetailIntent.putExtra("Recipe",recipe);
         startActivity(recipeDetailIntent);
-        }
+
     }
 
     @Override

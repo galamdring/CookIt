@@ -1,126 +1,143 @@
 package com.galamdring.android.cookit;
 
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.net.Uri;
-import android.os.PersistableBundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import com.galamdring.android.cookit.Data.Recipe;
 import com.galamdring.android.cookit.Data.Step;
-import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.LoadControl;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 public class stepDetailActivity extends AppCompatActivity {
 
-    private SimpleExoPlayerView PlayerView;
-    private SimpleExoPlayer Player;
-    private TextView Description;
+    private static final String KEY_FOR_VIDEO_FRAGMENT_IN_SAVED_STATE = "FragmentKey123!!??## These things are just wild.";
+    private static final String TAG_FOR_FRAGMENT = "FragmentManagerTagForStepDetailFragment";
+    private static final String KEY_FOR_DESCRIPTION_FRAGMENT_IN_SAVED_STATE = "BUNDLED DESCRIPTION FRAGMENT";
+    private static final String TAG_FOR_DESCRIPTION_FRAGMENT = "Another Tag, Another Dollar.";
     private final String POSITION_BUNDLE_KEY = "Position";
-    private String PLAYING_BUNDLE_KEY = "PLAYING";
+    private final String PLAYING_BUNDLE_KEY = "PLAYING";
+
+    private boolean Playing = true;
+    private long Position = 0;
+    Step MyStep;
+    StepDetailFragment VideoFragment;
+    StepDetailTextFragment DescriptionFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_step_detail);
-        PlayerView = findViewById(R.id.stepVideoPlayer);
         Intent launchingIntent = getIntent();
-        Step step = launchingIntent.getParcelableExtra("Step");
-        String url = step.getVideoUrl();
-        if(url !=null && !TextUtils.isEmpty(url)) {
-            if (Player == null) {
-                TrackSelector trackSelector = new DefaultTrackSelector();
-                LoadControl loadControl = new DefaultLoadControl();
-                Player = ExoPlayerFactory.newSimpleInstance(this, trackSelector, loadControl);
-                Uri mediaUri = Uri.parse(url);
-                PlayerView.setPlayer(Player);
-                PlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
-                String userAgent = Util.getUserAgent(this,"CookIt");
-                MediaSource source = new ExtractorMediaSource(mediaUri,new DefaultDataSourceFactory(
-                        this,userAgent),new DefaultExtractorsFactory(),null,null);
-                Player.prepare(source);
-                long position =0;
-                boolean playing = true;
-                //this pulls the data on a rotate, or other reload of the existing activity.
-                if(savedInstanceState!=null){
-                    position = savedInstanceState.getLong(POSITION_BUNDLE_KEY);
-                    Log.d(this.getClass().getSimpleName(),"set position to "+position);
-                    playing = (savedInstanceState.getByte(PLAYING_BUNDLE_KEY)!=0);
-                }
-                if(position!=0) Player.seekTo(position);
-                Player.setPlayWhenReady(playing);
-                PlayerView.hideController();
-            }
+
+        MyStep = launchingIntent.getParcelableExtra("Step");
+
+        if(savedInstanceState!=null){
+            VideoFragment = (StepDetailFragment)getSupportFragmentManager().getFragment(savedInstanceState, KEY_FOR_VIDEO_FRAGMENT_IN_SAVED_STATE);
+            Position = savedInstanceState.getLong(POSITION_BUNDLE_KEY);
+            Playing = savedInstanceState.getByte(PLAYING_BUNDLE_KEY) == 1;
+            DescriptionFragment = (StepDetailTextFragment)getSupportFragmentManager().getFragment(savedInstanceState, KEY_FOR_DESCRIPTION_FRAGMENT_IN_SAVED_STATE);
         }
-        else{
-            PlayerView.setVisibility(View.GONE);
+        if(VideoFragment ==null){
+            setupVideoFragment();
+        }
+        if(DescriptionFragment==null){
+            setupDescriptionFragment();
+        }
+
+
+
+    }
+
+    private void setupVideoFragment() {
+        if (MyStep.getVideoUrl() != null && !TextUtils.isEmpty(MyStep.getVideoUrl())) {
+            FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
+            VideoFragment = StepDetailFragment.newInstance(MyStep);
+            VideoFragment.setPlaying(Playing);
+            VideoFragment.setPosition(Position);
+            tran.replace(R.id.stepVideoPlayerFrame, VideoFragment, TAG_FOR_FRAGMENT);
+            tran.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            tran.addToBackStack(null);
+            tran.commit();
+        } else {
+            View PlayerViewFrame = findViewById(R.id.stepVideoPlayerFrame);
+            PlayerViewFrame.setVisibility(View.GONE);
             View layout = findViewById(R.id.stepDetailLinearLayout);
-            if(layout!=null)        layout.setVisibility(View.VISIBLE);
+            if (layout != null) layout.setVisibility(View.VISIBLE);
         }
-
-        try {
-            Description = findViewById(R.id.stepDetailDescription);
-            Description.setText(step.getDescription());
-        }
-        catch(Exception ex){
-
-        }
+    }
+    private void setupDescriptionFragment(){
+        FragmentTransaction tran = getSupportFragmentManager().beginTransaction();
+        DescriptionFragment = StepDetailTextFragment.instanceOf(MyStep);
+        tran.replace(R.id.stepDetailDescriptionFrame,DescriptionFragment, TAG_FOR_DESCRIPTION_FRAGMENT)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE|FragmentTransaction.TRANSIT_ENTER_MASK)
+                .addToBackStack(null)
+                .commit();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        Log.d("StepDetailActivity","In OnPause");
         if(Util.SDK_INT<=23){
-            releasePlayer();
+            if(VideoFragment!=null) VideoFragment.PausePlayback();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("StepDetailActivity","In OnResume");
+        if(Util.SDK_INT<=23){
+            if(VideoFragment!=null)VideoFragment.ResumePlayback();
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        Log.d("StepDetailActivity","In OnStop");
         if(Util.SDK_INT>23){
             releasePlayer();
         }
     }
 
     private void releasePlayer(){
-        if(Player!=null) {
-            Player.stop();
-            Player.release();
-            Player = null;
-        }
+        if(VideoFragment!=null)VideoFragment.releasePlayer();
     }
     @Override
     protected void onDestroy() {
+        Log.d("StepDetailActivity","In Ondestroy");
         releasePlayer();
         super.onDestroy();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        Log.d("stepdetailActivity","in onSaveInstanceState");
         super.onSaveInstanceState(outState);
-        long position = Player.getCurrentPosition();
-        Log.d(this.getClass().getSimpleName(),"got position as "+position);
-        boolean playing = Player.getPlayWhenReady();
-        outState.putLong(POSITION_BUNDLE_KEY, position);
-        outState.putByte(PLAYING_BUNDLE_KEY,(byte) (playing ? 1 : 0));
+        Log.d("StepDetailActivity","In OnSaveInstanceState");
+        if(VideoFragment !=null ) {
+            try {
+                getSupportFragmentManager().putFragment(outState, KEY_FOR_VIDEO_FRAGMENT_IN_SAVED_STATE, VideoFragment);
+                long position = VideoFragment.getPlayerPosition();
+                Log.d(this.getClass().getSimpleName(), "got position as " + position);
+                boolean playing = VideoFragment.getPlayWhenReady();
+                outState.putLong(POSITION_BUNDLE_KEY, position);
+                outState.putByte(PLAYING_BUNDLE_KEY, (byte) (playing ? 1 : 0));
+            }
+            catch(Exception ex){
+                Log.e(stepDetailActivity.class.getSimpleName(),"Failed to store fragment state.",ex);
+            }
+        }
+        if(DescriptionFragment !=null) {
+            try {
+                getSupportFragmentManager().putFragment(outState, KEY_FOR_DESCRIPTION_FRAGMENT_IN_SAVED_STATE, DescriptionFragment);
+            }
+            catch(Exception ex){
+                Log.e(stepDetailActivity.class.getSimpleName(),"Failed to store fragment state.",ex);
+            }
+        }
     }
 }

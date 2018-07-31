@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".recipeDetailActivity"
+    android:orientation="horizontal">
+
+    <FrameLayout
+        android:id="@+id/recipe_detail_fragment_solo"
+        android:name="com.galamdring.android.cookit.RecipeDetailFragment"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight=".4" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".5"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:id="@+id/stepVideoPlayerFrame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight=".6" />
+
+
+        <FrameLayout
+            android:id="@+id/stepDetailDescriptionFrame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp" />
+    </LinearLayout>
+</LinearLayout>

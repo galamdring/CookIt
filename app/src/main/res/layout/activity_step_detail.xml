@@ -6,8 +6,8 @@
     android:layout_height="match_parent"
     tools:context=".stepDetailActivity">
 
-    <com.google.android.exoplayer2.ui.SimpleExoPlayerView
-        android:id="@+id/stepVideoPlayer"
+    <FrameLayout
+        android:id="@+id/stepVideoPlayerFrame"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toTopOf="@id/guidelineSteps"/>
@@ -18,8 +18,8 @@
         app:layout_constraintGuide_percent="0.5"
         android:orientation="horizontal"/>
 
-    <TextView
-        android:id="@+id/stepDetailDescription"
+    <FrameLayout
+        android:id="@+id/stepDetailDescriptionFrame"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="16dp"
@@ -29,6 +29,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/stepVideoPlayer" />
+        app:layout_constraintTop_toBottomOf="@id/guidelineSteps" />
 
 </android.support.constraint.ConstraintLayout>
